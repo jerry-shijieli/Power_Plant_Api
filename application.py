@@ -33,8 +33,23 @@ class DisplayTopPlant(Resource):
         print(res)
         return jsonify(res)  if res['data'] else abort(204, 'No data found')
 
+class FilterPlantByState(Resource):
+
+    def get(self, state_abbr):
+        """
+        Filter plants by its state abbreviation.
+        """
+        if len(state_abbr) != 2 or not state_abbr.isalpha():
+            return abort(400, 'State abbreviation is required')
+        conn = engine.connect()
+        query = conn.execute('SELECT "eGRID2018 Plant file sequence number" AS id, "Plant latitude" AS latitude, "Plant longitude" AS longitude, "Plant annual net generation (MWh)" AS annua_net_generation, "Plant state abbreviation" AS state_abbr FROM PLNT18 WHERE "Plant annual net generation (MWh)" <> "" AND "Plant state abbreviation"  = "%s" ;' % state_abbr)
+        res = {'data': [dict(zip(tuple(query.keys()), val)) for val in query.cursor]}
+        print(res)
+        return jsonify(res)  if res['data'] else abort(204, 'No data found')
+
 api.add_resource(DisplayAllPlant, '/allplants', endpoint='all_plants')
 api.add_resource(DisplayTopPlant, '/topnplants/<int:N>', endpoint='top_n_plants')
+api.add_resource(FilterPlantByState, '/plantsbystate/<string:state_abbr>', endpoint='plants_by_state')
 
 if __name__ == '__main__':
     app.run(port='5002', debug=True)
