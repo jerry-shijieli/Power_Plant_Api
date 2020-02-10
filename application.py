@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, abort
 from flask_restful import Resource, Api
 from sqlalchemy import create_engine
+import os
 
 app = Flask(__name__)
 engine = create_engine('sqlite:///egrid2018_data.db')
@@ -52,4 +53,4 @@ api.add_resource(DisplayTopPlant, '/topnplants/<int:N>', endpoint='top_n_plants'
 api.add_resource(FilterPlantByState, '/plantsbystate/<string:state_abbr>', endpoint='plants_by_state')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port='5000', debug=True)
+    app.run(host='0.0.0.0', port=os.environ['HOME'], debug=True)
