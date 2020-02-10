@@ -18,8 +18,23 @@ class DisplayAllPlant(Resource):
         print(res)
         return jsonify(res) if res['data'] else abort(204, 'No data found')
 
+class DisplayTopPlant(Resource):
+
+    def get(self, N):
+        """
+        Rank and retrieve the top N plants by the annual net generation.
+        """
+        if int(N) <= 0:
+            return abort(400, 'Parameter is invalid')
+        topN = int(N)
+        conn = engine.connect()
+        query = conn.execute('SELECT "eGRID2018 Plant file sequence number" AS id, "Plant latitude" AS latitude, "Plant longitude" AS longitude, "Plant annual net generation (MWh)" AS annua_net_generation FROM PLNT18 WHERE "Plant annual net generation (MWh)" <> "" ORDER BY "Plant annual net generation (MWh)" DESC LIMIT %d ;' % topN)
+        res = {'data': [dict(zip(tuple(query.keys()), val)) for val in query.cursor]}
+        print(res)
+        return jsonify(res)  if res['data'] else abort(204, 'No data found')
 
 api.add_resource(DisplayAllPlant, '/allplants', endpoint='all_plants')
+api.add_resource(DisplayTopPlant, '/topnplants/<int:N>', endpoint='top_n_plants')
 
 if __name__ == '__main__':
     app.run(port='5002', debug=True)
